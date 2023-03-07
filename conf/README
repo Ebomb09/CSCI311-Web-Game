@@ -4,3 +4,4 @@ Describes configuration files the project will use in installing / processing
 1. HOST		- MySQL Server to connect to
 2. USER		- Login User 
 3. PASSWORD	- Login Password
+4. DATABASE	- Name of database being used
