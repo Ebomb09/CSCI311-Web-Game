@@ -1,18 +1,29 @@
 #!/bin/bash
 
-#Install web interface stuff
-echo "Copying web project files"
+# Set the project installation directory
+install_dir=~/public_html
+echo "Installing contents to $install_dir"
 
-for file in ~/public_html/*; do
-	rm -rf $file
+# Delete all files in the project directory
+echo "Removing old project files"
+for file in $install_dir/*; do
+	rm -r $file
 done
 
-cp -rp www/* ~/public_html
+# Install web interface stuff
+echo "Copying web project files"
+cp -rp www/* $install_dir
 
-#Install MySQL tables
-#TODO Script to load login and load tables, use non-git tracked for security
-#TODO Options to load test data
-echo "Loading MySQL tables"
+# Install MySQL tables
+db_conf_file=conf/db.info
+
+echo "Reading MySQL configuration $conf_file"
+db_host=$(sed -n 1p $db_conf_file)
+db_user=$(sed -n 2p $db_conf_file)
+db_pass=$(sed -n 3p $db_conf_file)
+
+echo "Connecting to $db_host as $db_user and creating database"
+mysql -h$db_host -u$db_user -p$db_pass < mysql/tables.sql
 
 #Done
 echo 'Done installing'
