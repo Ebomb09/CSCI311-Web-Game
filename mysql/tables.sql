@@ -1,3 +1,7 @@
+DROP DATABASE csci311c_project;
+CREATE DATABASE csci311c_project;
+USE csci311c_project;
+
 CREATE TABLE users(
 	id INT NOT NULL AUTO_INCREMENT,
 	name VARCHAR(16) NOT NULL,
@@ -13,3 +17,5 @@ CREATE TABLE scores(
 	PRIMARY KEY (id),
 	FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+
