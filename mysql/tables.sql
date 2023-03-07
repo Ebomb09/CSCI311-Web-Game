@@ -18,4 +18,13 @@ CREATE TABLE scores(
 	FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-
+INSERT INTO users 
+	(name, password) 
+VALUES 
+	("jeff", "test123"),
+	("matt", "asdf"),
+	("jimjon", "iou"),
+	("bimathon", "lolol"),
+	("clark", "kent"),
+	("williamsonmanson", "password32")
+;
