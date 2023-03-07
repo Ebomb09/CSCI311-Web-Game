@@ -1,0 +1,6 @@
+Describes configuration files the project will use in installing / processing
+
+[db.info]
+1. HOST		- MySQL Server to connect to
+2. USER		- Login User 
+3. PASSWORD	- Login Password
