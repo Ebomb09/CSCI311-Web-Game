@@ -1,6 +1,6 @@
-DROP DATABASE csci311c_project;
-CREATE DATABASE csci311c_project;
-USE csci311c_project;
+DROP DATABASE IF EXISTS ${db_name};
+CREATE DATABASE ${db_name};
+USE ${db_name};
 
 CREATE TABLE users(
 	id INT NOT NULL AUTO_INCREMENT,
