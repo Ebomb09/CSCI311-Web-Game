@@ -16,7 +16,7 @@
 			</tr>
 
 			<?php
-				require_once 'include.php';
+				require_once 'include/db.php';
 
 				$db = db_connect($db_host, $db_name, $db_user, $db_pass);
 
