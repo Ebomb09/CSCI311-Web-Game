@@ -70,7 +70,13 @@ const keys = {
     }
 }
 
+let scrollOffset = 0
+
 function animate() {
+    if (scrollOffset > 2000) {
+	    const scoreform = document.getElementById("scoresform")
+	    scoreform.submit()
+    }
     requestAnimationFrame(animate)
     // This clears the canvas
     c.clearRect(0, 0, canvas.width, canvas.height)
@@ -92,11 +98,13 @@ function animate() {
 
         if (keys.right.pressed) {
             platforms.forEach(platform => {
+		scrollOffset += 5
                 platform.position.x -= 5
             })
             
         } else if (keys.left.pressed) {
             platforms.forEach(platform => {
+		scrollOffset -= 5
                 platform.position.x += 5
             })
             
@@ -110,10 +118,25 @@ function animate() {
             player.velocity.y = 0
         }
     })
+    /*
+    if (scrollOffset > 2000) {
+	    const scoreform = document.getElementById("scoresform")
+	    scoreform.submit()
+    }
+    */
+    console.log(scrollOffset)
 }
 
 animate()
+function wincheck() {
 
+	if (scrollOffset > 2000) {
+    		const scoreform = document.getElementById("scoresform")
+	    	scoreform.submit()
+	}
+}
+
+wincheck()
 // event listeners
 // movement
 addEventListener('keydown', ({keyCode}) => {
