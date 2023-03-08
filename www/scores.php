@@ -21,28 +21,38 @@
 				$db = db_connect($db_host, $db_name, $db_user, $db_pass);
 
 				// Check if there are any scores to submit
-				if($_GET['submit'] == '1'){
+				$added = 'none';
+
+				if($_POST['post'] == '1'){
 
 					// Generic type checking
-					if(is_numeric($_GET['score']) && is_numeric($_GET['user_id']) ){
+					if(is_numeric($_POST['score']) && is_numeric($_POST['user_id']) ){
 
 						// Cast to appropriate typings
-						$user = $_GET['user_id'];
-						$score = (int)$_GET['score'];
+						$user = $_POST['user_id'];
+						$score = (int)$_POST['score'];
 
 						// Try to add user score
-						db_addUserScore($db, (int)$_GET['user_id'], (int)$_GET['score']);
+						db_addUserScore($db, $user, $score);
+
+						$added = $user;
 					}
 				}
 
+				// Get all scores from database and append to the table
 				foreach (db_getUserScores($db) as $row){
 
-					$userID = $row['name'];
+					$user_id = $row['user_id'];
+					$name = $row['name'];
 					$score = $row['score'];
 					$icon = $row['icon'];
+	
+					// For now how to show what score was added
+					if($added == $user_id)
+						$name = '>>' . $name . '<<';
 
 					print "<tr>";
-					print "<td> $userID </td>";
+					print "<td> $name </td>";
 					print "<td> <img src='images/$icon' alt='$userID profile icon'> </td>";
 					print "<td> $score </td>";
 					print "</tr>";

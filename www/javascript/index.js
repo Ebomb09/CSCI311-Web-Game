@@ -75,6 +75,10 @@ let scrollOffset = 0
 function animate() {
     if (scrollOffset > 2000) {
 	    const scoreform = document.getElementById("scoresform")
+	    var score = document.getElementById("form_score")
+	    score.value = scrollOffset
+	    var user = document.getElementById("form_user")
+	    user.value = 1	// Test user
 	    scoreform.submit()
     }
     requestAnimationFrame(animate)
