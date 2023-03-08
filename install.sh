@@ -4,16 +4,6 @@
 install_dir=~/public_html
 echo "Installing contents to $install_dir"
 
-# Delete all files in the project directory
-echo "Removing old project files"
-for file in $install_dir/*; do
-	rm -r $file
-done
-
-# Install web interface stuff
-echo "Copying web project files"
-cp -rp www/* $install_dir
-
 # Install MySQL tables
 db_conf_file=conf/db.info
 
