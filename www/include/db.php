@@ -1,5 +1,7 @@
 <?php
-	$db_conf_dir = trim(shell_exec('eval echo ~csci311c')) . '/project.git/conf/db.info';
+	require_once 'project.php';
+
+	$db_conf_dir = $project_home . '/conf/db.info';
 	$db_conf = fopen($db_conf_dir, 'r');
 	$db_host = trim(fgets($db_conf));
 	$db_user = trim(fgets($db_conf));
@@ -87,4 +89,3 @@
 		return true;
 	}
 ?>
-
