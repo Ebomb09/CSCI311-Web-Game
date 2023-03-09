@@ -17,7 +17,7 @@
 
 			if ($username == $hcusr && $password == $hcpss){
 				echo "<h2>Welcome ". $username . "!</h2><br>";
-				setcookie("username", $username, time() + 3600);	// 24 hours expiration
+				setcookie("username", $username, time() + 3600);	// 1 hour expiration
 				setcookie("password", $password, time() + 3600);
 			} else {
 				echo "<h2>". $username . " is not a current user</h2><br>";
