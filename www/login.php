@@ -12,13 +12,15 @@
 			// hard coded login and password
 			$hcusr = "test";
 			$hcpss = "1234";
-			$liusr = $_POST["username"];
-			$lipss = $_POST["password"];
+			$username = $_POST["username"];
+			$password = $_POST["password"];
 
-			if ($liusr == $hcusr && $lipss == $hcpss){
-				echo "<h2>Welcome ". $liusr . "!</h2><br>";
+			if ($username == $hcusr && $password == $hcpss){
+				echo "<h2>Welcome ". $username . "!</h2><br>";
+				setcookie("username", $username, time() + 3600);	// 24 hours expiration
+				setcookie("password", $password, time() + 3600);
 			} else {
-				echo "<h2>". $liusr . " is not a current user</h2><br>";
+				echo "<h2>". $username . " is not a current user</h2><br>";
 			}
 		?>
 	</div>
