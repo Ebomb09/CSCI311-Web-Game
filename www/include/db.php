@@ -9,6 +9,30 @@
 	$db_name = trim(fgets($db_conf));
 	fclose($db_conf);
 
+	function getcookie($name){
+
+		if(isset($_COOKIE["$name"]))
+			return $_COOKIE["$name"];
+
+		return '';
+	}
+
+	function getGET($name){
+
+		if(isset($_GET["$name"]))
+			return $_GET["$name"];
+
+		return '';
+	}
+
+	function getPOST($name){
+
+		if(isset($_POST["$name"]))
+			return $_POST["$name"];
+
+		return '';
+	}
+
 	function db_connect($db_host, $db_name, $db_user, $db_pass){
 
 		try{
@@ -29,13 +53,13 @@
 		if (!$db)
 			return $results;
 
-		if ($userid)
+		if (is_numeric($id))
 			$results = $db->query("SELECT * FROM users WHERE id=$id;");
 		
-		elseif ($name)
+		elseif (is_string($name))
 			$results = $db->query("SELECT * FROM users WHERE name='$name';");
 
-		else
+		elseif (!$id && !$name)
 			$results = $db->query("SELECT * FROM users;");
  
 		return $results;	
@@ -55,9 +79,8 @@
 			return false;
 
 		// Check if the username is not already taken
-		if(db_getUsersByName($db, $name).rowCount() == 0){
-			$db->query("INSERT INTO users(name, password, icon) VALUES ($name, $pass, $icon);");
-			return true;
+		if(db_getUsersByName($db, $name)->rowCount() == 0){			
+			return $db->query("INSERT INTO users(name, password, icon) VALUES ('$name', '$pass', '$icon');");
 		}
 		return false;
 	}
