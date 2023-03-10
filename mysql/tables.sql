@@ -3,7 +3,7 @@ CREATE DATABASE ${db_name};
 USE ${db_name};
 
 CREATE TABLE users(
-	id INT NOT NULL AUTO_INCREMENT,
+	id INT NOT NULL UNIQUE AUTO_INCREMENT,
 	name VARCHAR(16) NOT NULL,
 	icon VARCHAR(512),
 	password VARCHAR(32),
@@ -11,11 +11,18 @@ CREATE TABLE users(
 );
 
 CREATE TABLE scores(
-	id INT NOT NULL AUTO_INCREMENT,
+	id INT NOT NULL UNIQUE AUTO_INCREMENT,
 	user_id INT,
 	score INT,
 	PRIMARY KEY (id),
 	FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE sessions(
+	id VARCHAR(16) NOT NULL UNIQUE,
+	user_id INT UNIQUE,
+	PRIMARY KEY (id),
+	FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 INSERT INTO users 

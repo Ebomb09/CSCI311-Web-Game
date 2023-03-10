@@ -124,12 +124,26 @@
 		return true;
 	}
 
+	function db_createSession($db, $user_id){
+
+		if(!$db)
+			return false;
+
+		// Try to delete from the sessions table
+		$db->query("DELETE FROM sessions WHERE user_id=$user_id;");
+
+		$unique_id = random_bytes(16);
+		$result = $db->query("INSERT INTO sessions(id, user_id) VALUES ('$unique_id', $user_id);");
+
+		return $unique_id;
+	}
+
 	function db_handleAccount($db){
 
 		if(!$db)	
 			return false;
 
-		$user_id = getcookie('user_id');
+		$session = getcookie('session');
 		$event_type = getPOST('type');
 		$event_user = getPOST('username');
 		$event_pass = getPOST('password');
@@ -141,8 +155,8 @@
 				foreach(db_getUsersByName($db, $event_user) as $row){
 
 					if($row['password'] == $event_pass){
-						setcookie('user_id', $row['id']);
-						$user_id = $row['id'];
+						$session = db_createSession($db, $row['id']);
+						setcookie('session', $session);
 					}
 				}
 				break;
@@ -155,21 +169,24 @@
 					foreach(db_getUsersByName($db, $event_user) as $row){
 						
 						if($row['password'] == $event_pass){
-							setcookie('user_id', $row['id']);
-							$user_id = $row['id'];
+							$session = db_createSession($db, $row['id']);
+							setcookie('session', $session);
 						}
 					}
 				}
 				break;
 
 			case 'logout':
-				setcookie('user_id', '');
-				$user_id = 0;
+				setcookie('session', '');
+				$session = 0;
 				break;
 		}
 
-		if($user_id > 0 && db_getUsersById($db, $user_id)->rowCount() == 0)
-			$user_id = 0;
+		$user_id = 0;
+		$query = $db->query("SELECT * FROM sessions WHERE id='$session'");
+
+		if($query->rowCount() == 1)
+			$user_id = $query->fetch()['user_id'];
 
 		return $user_id;
 	}
