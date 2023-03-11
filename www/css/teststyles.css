@@ -5,7 +5,7 @@ body {
 
 h1 {
     text-align: center;
-    color: white;
+    color: black;
 }
 
 canvas {
@@ -13,4 +13,32 @@ canvas {
     background-color: white;
     border: 3px solid green;
     display:block;
+}
+
+.login {
+	 margin: auto;
+    background-image: url("../images/loginbackground.jpg");
+    width: 400px;
+    height: 150px;
+    border-style: solid;
+}
+
+.create_account {
+	 margin: auto;
+    background-image: url("../images/loginbackground.jpg");
+    width: 400px;
+    height: 150px;
+    border-style: solid;
+}
+
+p {
+    color: black;
+}
+
+.button {
+    text-align: center;
+}
+
+.usrtxt {
+    text-align: center;
 }
