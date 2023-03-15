@@ -147,7 +147,7 @@
 
 		// Try to add if not found
 		if(!$found){
-			$stmt = $db->query("INSERT INTO scores(user_id, score) VALUES (?, $score);");
+			$stmt = $db->prepare('INSERT INTO scores(user_id, score) VALUES (?, ?);');
 			$stmt->bindParam(1, $user_id, PDO::PARAM_INT);
 			$stmt->bindParam(2, $score, PDO::PARAM_INT);
 			$stmt->execute();
