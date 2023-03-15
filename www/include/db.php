@@ -17,6 +17,21 @@
 		return '';
 	}
 
+	function getsession($name){
+		session_start();
+
+		if(isset($_SESSION["$name"]))
+			return $_SESSION["$name"];
+
+		return '';
+	}
+
+	function setsession($name, $val){
+		session_start();		
+
+		$_SESSION["$name"] = $val;
+	}
+
 	function getGET($name){
 
 		if(isset($_GET["$name"]))
@@ -53,14 +68,18 @@
 		if (!$db)
 			return $results;
 
-		if (is_numeric($id))
-			$results = $db->query("SELECT * FROM users WHERE id=$id;");
-		
-		elseif (is_string($name))
-			$results = $db->query("SELECT * FROM users WHERE name='$name';");
+		if (is_numeric($id)){
+			$results = $db->prepare('SELECT * FROM users WHERE id=?;');
+			$results->bindParam(1, $id, PDO::PARAM_INT);
+			$results->execute();
 
-		elseif (!$id && !$name)
-			$results = $db->query("SELECT * FROM users;");
+		}elseif (is_string($name)){
+			$results = $db->prepare('SELECT * FROM users WHERE name=?;');
+			$results->bindParam(1, $name, PDO::PARAM_STR, 16);
+			$results->execute();
+
+		}elseif (!$id && !$name)
+			$results = $db->query('SELECT * FROM users;');
  
 		return $results;	
 	}
@@ -80,7 +99,13 @@
 
 		// Check if the username is not already taken
 		if(db_getUsersByName($db, $name)->rowCount() == 0){			
-			return $db->query("INSERT INTO users(name, password, icon) VALUES ('$name', '$pass', '$icon');");
+			$stmt = $db->prepare('INSERT INTO users(name, password, icon) VALUES (?, ?, ?);');
+			$stmt->bindParam(1, $name, PDO::PARAM_STR, 16);
+			$stmt->bindParam(2, $pass, PDO::PARAM_STR, 32);
+			$stmt->bindParam(3, $icon, PDO::PARAM_STR, 512);
+
+			if($stmt->execute())
+				return $stmt;
 		}
 		return false;
 	}
@@ -92,7 +117,7 @@
 		if(!$db)
 			return $results;
 
-		$results = $db->query("SELECT * FROM users JOIN scores ON users.id = scores.user_id;");
+		$results = $db->query('SELECT * FROM users JOIN scores ON users.id = scores.user_id;');
 
 		return $results;
 	}
@@ -111,15 +136,22 @@
 				$found = true;
 
 				if($row['score'] < $score){
-					$db->query("UPDATE scores SET score=$score WHERE user_id=$user_id;");
+					$stmt = $db->prepare('UPDATE scores SET score=? WHERE user_id=?;');
+					$stmt->bindParam(1, $score, PDO::PARAM_INT);
+					$stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+					$stmt->execute();
 					break;
 				}
 			}
 		}
 
 		// Try to add if not found
-		if(!$found)
-			$db->query("INSERT INTO scores(user_id, score) VALUES ($user_id, $score);");
+		if(!$found){
+			$stmt = $db->query("INSERT INTO scores(user_id, score) VALUES (?, $score);");
+			$stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+			$stmt->bindParam(2, $score, PDO::PARAM_INT);
+			$stmt->execute();
+		}
 
 		return true;
 	}
@@ -130,10 +162,16 @@
 			return false;
 
 		// Try to delete from the sessions table
-		$db->query("DELETE FROM sessions WHERE user_id=$user_id;");
+		$stmt = $db->prepare('DELETE FROM sessions WHERE user_id=?;');
+		$stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+		$stmt->execute();
 
+		// Add new session
 		$unique_id = random_bytes(16);
-		$result = $db->query("INSERT INTO sessions(id, user_id) VALUES ('$unique_id', $user_id);");
+		$stmt = $db->prepare('INSERT INTO sessions(id, user_id) VALUES (?, ?);');
+		$stmt->bindParam(1, $unique_id, PDO::PARAM_STR, 16);
+		$stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+		$stmt->execute();
 
 		return $unique_id;
 	}
@@ -143,7 +181,7 @@
 		if(!$db)	
 			return false;
 
-		$session = getcookie('session');
+		$session = getsession('session');
 		$event_type = getPOST('type');
 		$event_user = getPOST('username');
 		$event_pass = getPOST('password');
@@ -156,7 +194,7 @@
 
 					if($row['password'] == $event_pass){
 						$session = db_createSession($db, $row['id']);
-						setcookie('session', $session);
+						setsession('session', $session);
 					}
 				}
 				break;
@@ -170,24 +208,28 @@
 						
 						if($row['password'] == $event_pass){
 							$session = db_createSession($db, $row['id']);
-							setcookie('session', $session);
+							setsession('session', $session);
 						}
 					}
 				}
 				break;
 
 			case 'logout':
-				setcookie('session', '');
+				setsession('session', '');
 				$session = 0;
 				break;
 		}
 
 		$user_id = 0;
-		$query = $db->query("SELECT * FROM sessions WHERE id='$session'");
 
-		if($query->rowCount() == 1)
-			$user_id = $query->fetch()['user_id'];
+		// Try and get the session using the id
+		$stmt = $db->prepare('SELECT * FROM sessions WHERE id=?;');
+		$stmt->bindParam(1, $session, PDO::PARAM_STR, 16);
+		$stmt->execute();
 
+		if($stmt->rowCount() == 1)
+			$user_id = $stmt->fetch()['user_id'];
+		
 		return $user_id;
 	}
 ?>
