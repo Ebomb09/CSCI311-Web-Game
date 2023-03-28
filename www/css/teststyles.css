@@ -1,6 +1,32 @@
 body {
     background-image: url("../images/face.png");
+	min-width: 1280px;
+	max-width: 75%;
+	margin: auto;
+}
 
+nav {
+	background-color: white;
+	border: black 1px solid;
+	text-align: center;
+}
+
+nav * {
+	font-family: sans-serif;
+	display: inline-block;
+}
+
+nav li {
+	margin-right: 2em;
+}
+
+div.content {
+	background-color: white;
+	padding: 2em;
+}
+
+div.content footer {
+	margin-top: 5em;
 }
 
 h1 {
@@ -15,16 +41,9 @@ canvas {
     display:block;
 }
 
-.login {
-	 margin: auto;
-    background-image: url("../images/loginbackground.jpg");
-    width: 400px;
-    height: 150px;
-    border-style: solid;
-}
-
-.create_account {
-	 margin: auto;
+div.login, div.create-account {
+	margin: auto;
+	margin-top: 2em;
     background-image: url("../images/loginbackground.jpg");
     width: 400px;
     height: 150px;

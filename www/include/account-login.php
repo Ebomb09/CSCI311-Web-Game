@@ -15,7 +15,7 @@
 	</form>
 </div>
 
-<div class="create_account">
+<div class="create-account">
 	<h1> Create an Account </h1>
 
 	<form method="POST">
