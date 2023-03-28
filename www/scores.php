@@ -1,69 +1,63 @@
-<!DOCTYPE html>
-<html>
+<?php
+	require_once 'include/db.php';
+	$db = db_connect($db_host, $db_name, $db_user, $db_pass);
+	$user_id = db_handleAccount($db);
 
-	<head>
-		<meta charset="UTF-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Scores Page</title>
-	</head>
+	/* Page Structure */
+	$page_name = 'High Scores';
 
-	<body>
+	require 'include/head.php';
+?>
 
-		<table>
+<table>
 
-			<tr>
-				<th> User </th>
-				<th> <!-- Icon --> </th>
-				<th> Score </th>
-			</tr>
+	<tr>
+		<th> User </th>
+		<th> <!-- Icon --> </th>
+		<th> Score </th>
+	</tr>
 
-			<?php
-				require_once 'include/db.php';
+	<?php
+		// Check if there are any scores to submit
+		$score_added = false;
 
-				$db = db_connect($db_host, $db_name, $db_user, $db_pass);
+		if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
-				// Check if there are any scores to submit
-				$added = 'none';
+			// Generic type checking
+			if($user_id && is_numeric($_POST['score'])){
 
-				if($_POST['post'] == '1'){
+				// Cast to appropriate typings
+				$score = (int)$_POST['score'];
 
-					// Generic type checking
-					if(is_numeric($_POST['score']) && is_numeric($_POST['user_id']) ){
+				// Try to add user score
+				db_addUserScore($db, $user_id, $score);
+				$score_added = true;
+			}
+		}
 
-						// Cast to appropriate typings
-						$user = $_POST['user_id'];
-						$score = (int)$_POST['score'];
+		// Get all scores from database and append to the table
+		foreach (db_getUserScores($db) as $row){
 
-						// Try to add user score
-						db_addUserScore($db, $user, $score);
+			$scorer_id = $row['user_id'];
+			$name = $row['name'];
+			$score = $row['score'];
+			$icon = $row['icon'];
 
-						$added = $user;
-					}
-				}
+			// For now how to show what score was added
+			if($score_added && $user_id == $scorer_id)
+				$name = '>>' . $name . '<<';
 
-				// Get all scores from database and append to the table
-				foreach (db_getUserScores($db) as $row){
+			print "<tr>";
+			print "<td> $name </td>";
+			print "<td> <img src='images/$icon' alt='$name profile icon'> </td>";
+			print "<td> $score </td>";
+			print "</tr>";
+		}
+	?>
 
-					$user_id = $row['user_id'];
-					$name = $row['name'];
-					$score = $row['score'];
-					$icon = $row['icon'];
-	
-					// For now how to show what score was added
-					if($added == $user_id)
-						$name = '>>' . $name . '<<';
+</table>
 
-					print "<tr>";
-					print "<td> $name </td>";
-					print "<td> <img src='images/$icon' alt='$userID profile icon'> </td>";
-					print "<td> $score </td>";
-					print "</tr>";
-				}
-			?>
 
-		</table>
-
-	</body>
-
-</html>
+<?php
+	require 'include/tail.php';
+?>
