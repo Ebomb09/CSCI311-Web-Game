@@ -24,15 +24,19 @@
 		<li> <a href='scores'> View High Scores </a> </li>
 
 		<?php
+		$name = 'Login';
 
+		// Try to get account name if logged in
 		if($user_id){
 			$result = db_getUsersById($db, $user_id);
 
-			if($result->rowCount() == 1){
+			if($result->rowCount() == 1)
 				$name = $result->fetch()['name'];
-				echo "<li> <a href='account'> $name </a> </li>";
-			}
 		}
+		echo "<li> <a href='account'> $name </a> </li>";
+
 		?>
 	</ul>
 </nav>
+
+<div class='content'>
