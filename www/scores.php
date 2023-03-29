@@ -9,12 +9,12 @@
 	require 'include/head.php';
 ?>
 
-<table>
+<table class="highscores">
 
 	<tr>
-		<th> User </th>
-		<th> <!-- Icon --> </th>
-		<th> Score </th>
+		<th class="icon"> <!-- Icon --> </th>
+		<th class="username"> User </th>
+		<th class="score"> Score </th>
 	</tr>
 
 	<?php
@@ -48,9 +48,9 @@
 				$name = '>>' . $name . '<<';
 
 			print "<tr>";
-			print "<td> $name </td>";
-			print "<td> <img src='images/$icon' alt='$name profile icon'> </td>";
-			print "<td> $score </td>";
+			print "<td class='icon'> <img src='images/$icon' alt='$name profile icon'> </td>";
+			print "<td class='username'> $name </td>";
+			print "<td class='score'> $score </td>";
 			print "</tr>";
 		}
 	?>

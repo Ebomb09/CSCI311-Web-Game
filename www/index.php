@@ -4,7 +4,7 @@
 	$user_id = db_handleAccount($db);
 
 	/* Page Structure */
-	$page_name = 'Web Game';
+	$page_name = 'Play Game';
 
 	require 'include/head.php';
 
