@@ -5,6 +5,29 @@ body {
 	margin: auto;
 }
 
+h1 {
+    text-align: center;
+    color: black;
+}
+
+p {
+    color: black;
+}
+
+form input[type="submit"], button {
+	border: none;
+	padding: 0.5em 2em;
+	background-color: lightblue;
+	cursor: pointer;
+}
+
+canvas {
+    margin: auto;
+    background-color: white;
+    border: 3px solid green;
+    display:block;
+}
+
 nav {
 	background-color: white;
 	border: black 1px solid;
@@ -29,35 +52,59 @@ div.content footer {
 	margin-top: 5em;
 }
 
-h1 {
-    text-align: center;
-    color: black;
+footer.copyright {
+	border-top: gray 1px dashed;
+	padding-top: 2em;
+	text-align: center;
 }
 
-canvas {
-    margin: auto;
-    background-color: white;
-    border: 3px solid green;
-    display:block;
-}
-
-div.login, div.create-account {
+form.account {
+	font-family: sans-serif;
 	margin: auto;
-	margin-top: 2em;
-    background-image: url("../images/loginbackground.jpg");
-    width: 400px;
-    height: 150px;
-    border-style: solid;
+	margin-top: 1em;
+	background-image: url("../images/loginbackground.jpg");
+	width: 30%;
+	border-style: solid;
 }
 
-p {
-    color: black;
+form.account h3 {
+	text-align: center;
 }
 
-.button {
-    text-align: center;
+form.account div.text-input {
+	width: 50%;
+	margin: auto;
+	margin-bottom: 1em;
 }
 
-.usrtxt {
-    text-align: center;
+form.account div.text-input input{
+	width: 100%;
+}
+
+form.account input[type="submit"] {
+	margin: auto;
+	margin-bottom: 1em;
+	display: block;
+}
+
+table.highscores {
+	width: 40%;
+	margin: auto;
+	border-collapse: collapse;
+}
+
+table.highscores th, table.highscores td {
+	border-bottom: 1px black solid;
+}
+
+table.highscores th.username {
+	text-align: left;
+}
+
+table.highscores th.icon {
+	width: 15%;
+}
+
+table.highscores th.score, table.highscores td.score {
+	text-align: right;
 }
