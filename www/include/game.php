@@ -1,4 +1,3 @@
-<h1>GAMER GAME</h1>
 <canvas width="1000px" height="700px">
 
 </canvas>

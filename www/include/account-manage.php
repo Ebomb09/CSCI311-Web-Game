@@ -1,5 +1,3 @@
-<div>
-
 <?php
 
 	$results = db_getUsersById($db, $user_id);
@@ -10,12 +8,10 @@
 		$icon = $row['icon'];
 	}
 
-	echo "<h1> Currently logged in as $name</h1>";
+	echo "<h3> Currently logged in as $name</h3>";
 	echo "<img src='images/$icon'>";
 ?>
 
-	<form method="POST">
-		<input name="type" type="submit" value="logout">
-	</form>
-
-</div>
+<form method="POST">
+	<input name="type" type="submit" value="logout">
+</form>

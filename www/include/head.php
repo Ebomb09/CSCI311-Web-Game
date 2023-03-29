@@ -40,3 +40,5 @@
 </nav>
 
 <div class='content'>
+
+	<h2> <?php echo $page_name; ?> </h2>
