@@ -1,3 +1,9 @@
+<?php if($errors != "") { ?>
+<div class="error">
+<?php echo $errors; ?>
+</div>
+<?php } ?>
+
 <form class="account" method="POST">
 	<h3> Login </h3>
 

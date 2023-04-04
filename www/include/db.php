@@ -9,6 +9,8 @@
 	$db_name = trim(fgets($db_conf));
 	fclose($db_conf);
 
+	$errors = "";
+
 	function getcookie($name){
 
 		if(isset($_COOKIE["$name"]))
@@ -185,18 +187,29 @@
 		$event_type = getPOST('type');
 		$event_user = getPOST('username');
 		$event_pass = getPOST('password');
+		
+		global $errors;
 
 		switch($event_type){
 
 			case 'login': 
 
-				foreach(db_getUsersByName($db, $event_user) as $row){
+				$results = db_getUsersByName($db, $event_user);
+		
+				if(!$results || $results->rowCount() != 1){
+					$errors = "User $event_user doesn't exist!";
+					break;
+				}				
 
-					if($row['password'] == $event_pass){
-						$session = db_createSession($db, $row['id']);
-						setsession('session', $session);
-					}
-				}
+				$row = $results->fetch();
+
+				if($row['password'] == $event_pass){
+					$session = db_createSession($db, $row[0]['id']);
+					setsession('session', $session);
+			
+				}else
+					$errors = "Incorrect Password!";
+		
 				break;
 
 			case 'create':
@@ -204,14 +217,25 @@
 				if(db_addUser($db, $event_user, $event_pass)){
 
 					// Check if actual user account was created
-					foreach(db_getUsersByName($db, $event_user) as $row){
-						
-						if($row['password'] == $event_pass){
-							$session = db_createSession($db, $row['id']);
-							setsession('session', $session);
-						}
-					}
-				}
+					$results = db_getUsersByName($db, $event_user);
+			
+					if(!$results || $results->rowCount() != 1){
+						$errors = "Failed to create user $event_user!";
+						break;
+					}				
+
+					$row = $results->fetch();
+
+					if($row['password'] == $event_pass){
+						$session = db_createSession($db, $row['id']);
+						setsession('session', $session);
+				
+					}else
+						$errors = "Incorrect Password!";
+
+				}else{
+					$errors = "User $event_user already exists!";
+				}	
 				break;
 
 			case 'logout':

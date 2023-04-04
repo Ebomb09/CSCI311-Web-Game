@@ -52,6 +52,20 @@ div.content footer {
 	margin-top: 5em;
 }
 
+div.error{
+	background-color: lightpink;
+	color: darkred;
+	border: 1px solid salmon;
+	border-radius: 4px;
+	text-align: center;
+	font-size: 150%;
+	font-family: sans-serif;
+	font-weight: bold;
+	width: fit-content;
+	margin: auto;
+	padding: 0.5em 2em;
+}
+
 footer.copyright {
 	border-top: gray 1px dashed;
 	padding-top: 2em;
