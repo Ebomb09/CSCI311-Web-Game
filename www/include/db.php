@@ -99,8 +99,10 @@
 		if(!$db)
 			return false;
 
+		$results = db_getUsersByName($db, $name);
+
 		// Check if the username is not already taken
-		if(db_getUsersByName($db, $name)->rowCount() == 0){			
+		if($results && $results->rowCount() == 0){			
 			$stmt = $db->prepare('INSERT INTO users(name, password, icon) VALUES (?, ?, ?);');
 			$stmt->bindParam(1, $name, PDO::PARAM_STR, 16);
 			$stmt->bindParam(2, $pass, PDO::PARAM_STR, 32);
@@ -110,6 +112,24 @@
 				return $stmt;
 		}
 		return false;
+	}
+
+	function db_updateUserIcon($db, $user_id, $icon){
+
+		if(!$db)
+			return false;
+
+		$results = db_getUsersById($db, $user_id);
+		
+		if($results && $results->rowCount() == 1){
+			$stmt = $db->prepare('UPDATE users SET icon=? WHERE id=?');
+			$stmt->bindParam(1, $icon, PDO::PARAM_STR, 512);
+			$stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+
+			if($stmt->execute())
+				return true;
+		}
+		return false;	
 	}
 
 	function db_getUserScores($db){
@@ -178,6 +198,19 @@
 		return $unique_id;
 	}
 
+	function db_deleteSession($db, $session){
+	
+		if(!$db)
+			return false;
+
+		// Try to delete from the sessions table
+		$stmt = $db->prepare('DELETE FROM sessions WHERE id=?;');
+		$stmt->bindParam(1, $session, PDO::PARAM_STR, 16);
+		$stmt->execute();
+
+		return true;
+	}
+
 	function db_handleAccount($db){
 
 		if(!$db)	
@@ -204,7 +237,7 @@
 				$row = $results->fetch();
 
 				if($row['password'] == $event_pass){
-					$session = db_createSession($db, $row[0]['id']);
+					$session = db_createSession($db, $row['id']);
 					setsession('session', $session);
 			
 				}else
@@ -239,6 +272,7 @@
 				break;
 
 			case 'logout':
+				db_deleteSession($db, $session);
 				setsession('session', '');
 				$session = 0;
 				break;

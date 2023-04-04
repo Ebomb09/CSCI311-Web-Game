@@ -58,14 +58,14 @@ if ($stmt->rowCount() > 0) {
 	    // Top 3 scores
 		if($i < 4){
 			print "<tr>";
-			print "<td class='icon'> <img src='images/$icon' alt='$name profile icon'> </td>";
+			print "<td class='icon'> <img src='$icon' alt='$name profile icon'> </td>";
 			print "<td class='username'><b> $name </b></td>";
 			print "<td class='score'><b> $score </b></td>";
 			print "</tr>";
 	// The rest
 		} else {
 			print "<tr>";
-			print "<td class='icon'> <img src='images/$icon' alt='$name profile icon'> </td>";
+			print "<td class='icon'> <img src='$icon' alt='$name profile icon'> </td>";
 			print "<td class='username'> $name </td>";
 			print "<td class='score'> $score </td>";
 			print "</tr>";
