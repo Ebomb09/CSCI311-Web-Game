@@ -76,7 +76,8 @@ const game = {
 		coin: 		createImage('images/coin.png', 100, 100),
 		block:	 	createImage('images/dirtblock.png', 100, 100),
 		platform:	createImage('images/dirt.png', 500, 100),
-		background: createImage('images/background.jpg')
+		background: createImage('images/background.jpg'),
+		flag:		createImage('images/flag.png', 100, 100)
 	},
 
 	font: "48px serif"
@@ -91,6 +92,7 @@ class GenericObject {
 		this.velocity = {x: 0, y: 0};
 		this.static = true;
 		this.solid = true;
+		this.alive = true;
 
 		if(image === undefined || image === null){
 			this.image = null;
@@ -164,13 +166,7 @@ class GenericObject {
 
 	
 	destroy(){
-		
-		for(let i = 0; i < game.objects.length; i ++){
-			let obj = game.objects[i];
-			
-			if(obj === this)
-				game.objects.splice(i, 1);	
-		}
+		this.alive = false;
 	}
 
 
@@ -255,28 +251,50 @@ class Coin extends GenericObject {
 		this.solid = false;
     }
 
-	update(){
 
+	update(){
 
 		if(this.collides("Player")){
 			game.sfx.coin.currentTime = 0;	
 			game.sfx.coin.play();
-			game.points += 1;
+
+			game.points += 100;
+
 			this.destroy();
 		}
 	}
 }
 
 
+class Flag extends GenericObject {
+
+
+    constructor(x, y) {
+        super(x, y, game.img.flag);
+		this.solid = false;
+    }
+
+
+	update(){
+		// Win Condition
+		if (this.collides('Player'))
+			uploadScore(game.points);
+	}
+}
+
+
 class Camera{
+
 
 	constructor(){ 
 		this.cam = game.cam;
 		this.velocity = {x: 0, y: 0};
 	}
 	
+
 	draw(){}
 	
+
 	update(){
 		let player = getObject('Player');	
 
@@ -291,6 +309,8 @@ class Camera{
 		// Clamp Camera to bounds
 		if(this.cam.x < 0)
 			this.cam.x = 0;
+
+		this.cam.x = Math.round(this.cam.x);
 	}
 }
 
@@ -320,21 +340,27 @@ function init() {
 		for(let x = 0; x < level.width; x ++){
 			for(let y = 0; y < level.height; y ++){
 
+				// Image recognition threshold
+				let thresh = 128;
 				let pixel = temp_ctx.getImageData(x, y, 1, 1);
 
-				// Alpha is fully visible
-				if(pixel.data[3] == 255){
+				// Alpha is visible
+				if(pixel.data[3] > 0){
 
 					// Player 
-					if(pixel.data[0] == 255 && pixel.data[1] == 0 && pixel.data[2] == 0)
+					if(pixel.data[0] > thresh && pixel.data[1] < thresh && pixel.data[2] < thresh)
 						game.objects.push(new Player(x * 100, y * 100));
 
+					// Flag
+					else if(pixel.data[0] < thresh && pixel.data[1] > thresh && pixel.data[2] > thresh)
+						game.objects.push(new Flag(x * 100, y * 100));
+
 					// Platform Block
-					if(pixel.data[0] == 0 && pixel.data[1] == 0 && pixel.data[2] == 0)
+					else if(pixel.data[0] < thresh && pixel.data[1] < thresh && pixel.data[2] < thresh)
 						game.objects.push(new Platform(x * 100, y * 100, game.img.platform, 100, 100));
 
 					// Coins
-					if(pixel.data[0] == 255 && pixel.data[1] == 255 && pixel.data[2] == 0)
+					else if(pixel.data[0] > thresh && pixel.data[1] > thresh && pixel.data[2] < thresh)
 						game.objects.push(new Coin(x * 100, y * 100));
 				}
 			}
@@ -350,18 +376,23 @@ function animate() {
     requestAnimationFrame(animate);
     c.clearRect(0, 0, canvas.width, canvas.height);
 
+	// Let objects do their function loops
 	game.objects.forEach((obj) => {
 		obj.draw();
 		obj.update();		
 	});
 
-    point = drawText(game.points, 950, 50);
+	// Remove non-alive objects
+	for(let i = 0; i < game.objects.length; i += 1){
+		let obj = game.objects[i];
 
-	let player = getObject('Player');
+		if(obj.alive === false){
+			game.objects.splice(i, 1);
+			i -= 1;
+		}
+	}
 
-    // win condition
-    //if (player !== null && player.position.x > 1500)
-	//	uploadScore(game.points);
+    drawText(game.points, 800, 50);
 }
 
 
