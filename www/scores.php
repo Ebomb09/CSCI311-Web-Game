@@ -22,7 +22,7 @@
 // Check if there are any scores to submit
 $score_added = false;
 
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 	// Generic type checking
 	if($user_id && is_numeric($_POST['score'])){

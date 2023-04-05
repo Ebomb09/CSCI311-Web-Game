@@ -39,6 +39,15 @@ function getObject(name){
 	return ret;
 }
 
+
+function uploadScore(value){
+	const form = document.getElementById('form-input');
+	const score = document.getElementById('score');
+	score.value = value;
+	form.submit();
+}
+
+
 const game = {
 
 	points: 0,
@@ -322,10 +331,8 @@ function animate() {
     point = drawText(game.points, 950, 50);
 
     // win condition
-    if (game.cam.x > 1500) {
-        const scoreform = document.getElementById("scoresform")
-	    	scoreform.submit()
-    }
+    if (game.cam.x > 1500)
+		uploadScore(game.points);
 }
 
 
