@@ -23,6 +23,7 @@ function collisionCheck(obj1, obj2){
 
 
 function drawText(text, x, y){
+	c.fillStyle = 'black';
 	c.font = game.font;
 	c.fillText(text, x, y)
 }
@@ -69,6 +70,11 @@ const game = {
 		h: c.canvas.clientHeight
 	},
 	
+	world: {
+		w: 0,
+		h: 0
+	},
+
 	keys: {
 		right: 	{id: 68, pressed: false},
 		left: 	{id: 65, pressed: false},
@@ -152,7 +158,7 @@ class GenericObject {
 
     draw(){
 		let x = this.position.x - game.cam.x;
-		let y = this.position.y;
+		let y = this.position.y - game.cam.y;
 
 		if (this.image !== null){
 			c.drawImage(
@@ -291,16 +297,19 @@ class Flag extends GenericObject {
 }
 
 
-class Camera{
+class Camera extends GenericObject{
 
 
 	constructor(){ 
+		super(0, 0, null, 0, 0);
+		this.solid = false;
+
 		this.cam = game.cam;
 		this.velocity = {x: 0, y: 0};
 	}
 	
 
-	draw(){}
+	draw(){ /* Draw nothing */ }
 	
 
 	update(){
@@ -309,18 +318,31 @@ class Camera{
 		if(player === null)
 			return;
 
-		let targetX = player.position.x + player.velocity.x * 20 - this.cam.w/2;
+		let targetX = player.position.x + player.velocity.x * 75 - this.cam.w/2;
 
 		this.velocity.x = (targetX - this.cam.x)/50;
 		this.cam.x += this.velocity.x;
 
+		let targetY = player.position.y - this.cam.h/2;
+
+		this.velocity.y = (targetY - this.cam.y)/50;
+		this.cam.y += this.velocity.y;
+
+
 		// Clamp Camera to bounds
 		if(this.cam.x < 0)
 			this.cam.x = 0;
+
+		if(this.cam.x > game.world.w - this.cam.w)
+			this.cam.x = game.world.w - this.cam.w;
+
+		if(this.cam.y > game.world.h - this.cam.h)
+			this.cam.y = game.world.h - this.cam.h;
 	}
 }
 
-// reinitializes the player and map in case of DEATH
+
+// Reinitializes the player and map in case of DEATH
 function init() {
 	
 	game.objects = [];
@@ -343,6 +365,7 @@ function init() {
 		temp_ctx.height = level.height;
 		temp_ctx.drawImage(level, 0, 0);
 
+		// Check the pixels vs threshold to choose type
 		for(let x = 0; x < level.width; x ++){
 			for(let y = 0; y < level.height; y ++){
 
@@ -374,6 +397,16 @@ function init() {
 
 		// Cleanup temporary canvas
 		temp_canvas.remove();
+
+		// Find world limits
+		game.objects.forEach((obj) => {
+
+			if(obj.position.x + obj.width > game.world.w)
+				game.world.w = obj.position.x + obj.width;
+
+			if(obj.position.y + obj.height > game.world.h)
+				game.world.h = obj.position.y + obj.height;
+		});
 	});
 }
 
@@ -405,7 +438,7 @@ function animate() {
 // Initialize Game
 init();
 animate();
-playAudio(game.sfx.music, 0.2, true);
+playAudio(game.sfx.music, 0.1, true);
 
 
 // Event Listeners
