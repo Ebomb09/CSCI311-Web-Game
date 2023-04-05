@@ -134,9 +134,7 @@ class GenericObject {
 
 		// Do physics if not static
 		if(this.static === false){
-
-			if (this.position.y + this.height + this.velocity.y <= canvas.height)
-				this.velocity.y += game.gravity;
+			this.velocity.y += game.gravity;
 
 			if(this.collides("Platform", {x: 0, y: this.velocity.y}) === false){
 				this.onGround = false;
@@ -242,8 +240,8 @@ class Player extends GenericObject {
 		if(game.keys.up.pressed && this.onGround === true)
 			this.velocity.y = -15;
 
-		// lose condition
-		if (this.position.y > canvas.height) {
+		// Lose condition
+		if (this.position.y > game.world.h) {
 			playAudio(game.sfx.death, 1.0, false);
 			init();
 		}
