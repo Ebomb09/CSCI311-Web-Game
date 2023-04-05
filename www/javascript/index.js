@@ -60,6 +60,7 @@ function uploadScore(value){
 const game = {
 
 	points: 0,
+	targetFps: 60,
 	gravity: 0.5,
 	objects: [],
 
@@ -410,7 +411,8 @@ function init() {
 
 
 function animate() {
-    requestAnimationFrame(animate);
+	startTime = Date.now();
+
     c.clearRect(0, 0, canvas.width, canvas.height);
 
 	// Let objects do their function loops
@@ -430,6 +432,17 @@ function animate() {
 	}
 
     drawText(game.points, 800, 50);
+
+	// Calculate frame delay
+	endTime = Date.now();
+	
+	deltaTime = endTime - startTime;
+	msPerFrame = 1000 / game.targetFps;
+
+	if(deltaTime < msPerFrame)
+		setTimeout( () => {requestAnimationFrame(animate)}, msPerFrame - deltaTime);
+	else
+    	requestAnimationFrame(animate);
 }
 
 
