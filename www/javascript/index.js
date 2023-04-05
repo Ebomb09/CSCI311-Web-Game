@@ -372,7 +372,7 @@ function init() {
 				let pixel = temp_ctx.getImageData(x, y, 1, 1);
 
 				// Alpha is visible
-				if(pixel.data[3] > 0){
+				if(pixel.data[3] > thresh){
 
 					// Player 
 					if(pixel.data[0] > thresh && pixel.data[1] < thresh && pixel.data[2] < thresh)
