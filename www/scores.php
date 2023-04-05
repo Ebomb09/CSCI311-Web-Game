@@ -65,7 +65,7 @@ if ($stmt->rowCount() > 0) {
 	// The rest
 		} else {
 			print "<tr>";
-			print "<td class='icon'> <img src='$icon' alt='$name profile icon'> </td>";
+			print "<td class='icon'> <img src='$icon' alt='$name's profile icon'> </td>";
 			print "<td class='username'> $name </td>";
 			print "<td class='score'> $score </td>";
 			print "</tr>";
