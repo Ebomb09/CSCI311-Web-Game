@@ -1,280 +1,355 @@
-// get access to the canvas element
-const canvas = document.querySelector('canvas')
-// this returns a drawing context, in this case to draw in 2d 
-const c = canvas.getContext('2d')
-console.log(c)
+// Get access to the canvas element
+const canvas = document.querySelector('canvas');
 
-const gravity = 0.5
+// This returns a drawing context, in this case to draw in 2d 
+const c = canvas.getContext('2d');
 
-class Player {
-    constructor() {
-        this.position = {
-            x: 100,
-            y: 100
-        }
-        this.velocity = {
-            x: 0,
-            y: 1
-        }
-        this.width = 30
-        this.height = 30
-    }
 
-    draw() {
-        // fills the a red square in the canvas
-        c.fillStyle = 'red'
-        // the square uses the position object to place itself on the canvas
-        // then uses the width and height to dertime the width and height of the square
-        c.fillRect(this.position.x,this.position.y, this.width, this.height)
-    }
-
-    update() {
-        this.draw()
-        this.position.y += this.velocity.y
-        this.position.x += this.velocity.x
-        if (this.position.y + this.height + this.velocity.y <= canvas.height) {
-            this.velocity.y += gravity
-        } 
-    }
+// Helper Functions
+function createImage(imgSrc, w, h) {
+    const image = new Image(w, h);
+    image.src = imgSrc;
+    return image;
 }
 
-class Platform {
-    constructor({x, y, image}) {
-        this.position = {
-            x: x,
-            y: y
-        }
-        this.image = image
-        this.width = image.width
-        this.height = image.height
-    }
 
-    draw() {
-        c.drawImage(this.image,this.position.x,this.position.y)
-        //c.fillStyle = 'blue' 
-        //c.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
+function collisionCheck(obj1, obj2){
+
+	return (obj1.x + obj1.w >= obj2.x
+		&& 	obj1.x 			<= obj2.x + obj2.w
+		&& 	obj1.y + obj1.w >= obj2.y
+		&& 	obj1.y 			<= obj2.y + obj2.h);
 }
 
-class Coin {
-    constructor({x, y, image}) {
-        this.position = {
-            x: x,
-            y: y
-        }
 
-        this.image = image
-        this.width = image.width
-        this.height = image.height
-    }
-
-    draw() {
-        c.drawImage(this.image,this.position.x,this.position.y)
-    }
+function drawText(text, x, y){
+	c.font = game.font;
+	c.fillText(text, x, y)
 }
+
+
+function getObject(name){
+	let ret = null;
+
+	game.objects.forEach((obj) => {
+		
+		if(obj.constructor.name === name)
+			ret = obj;
+	});
+	return ret;
+}
+
+const game = {
+
+	points: 0,
+	gravity: 0.5,
+	objects: [],
+
+	cam: {
+		x: 0,
+		y: 0,
+		w: c.canvas.clientWidth,
+		h: c.canvas.clientHeight
+	},
+	
+	keys: {
+		right: 	{id: 68, pressed: false},
+		left: 	{id: 65, pressed: false},
+		up: 	{id: 87, pressed: false},
+		down: 	{id: 83, pressed: false}
+	},
+
+	sfx: {
+		coin: new Audio('sfx/coinsfx.mp3')
+	},
+	
+	img: {
+		coin: 		createImage('images/coin.png', 100,100),
+		block:	 	createImage('images/dirtblock.png', 100, 100),
+		platform:	createImage('images/dirt.png', 500, 100),
+		background: createImage('images/background.jpg')
+	},
+
+	font: "48px serif"
+};
+
 
 class GenericObject {
-    constructor({x, y, image}) {
-        this.position = {
-            x: x,
-            y: y
-        }
-        this.image = image
-        this.width = image.width
-        this.height = image.height
-    }
 
-    draw() {
-        c.drawImage(this.image,this.position.x,this.position.y)
+
+    constructor(x, y, image, w, h) {
+        this.position = {x: x, y: y};
+		this.velocity = {x: 0, y: 0};
+		this.static = true;
+		this.solid = true;
+
+		if(image === undefined || image === null){
+			this.image = null;
+			this.width = w;
+			this.height = h;
+		}else{
+			this.image = image;
+		
+			if(w === undefined)
+				this.width = image.width;
+			else
+				this.width = w;
+
+			if(h === undefined)
+				this.height = image.height;
+			else
+				this.height = h;
+		}
     }
+	
+
+	update(){
+
+		// Do physics if not static
+		if(this.static === false){
+
+			if (this.position.y + this.height + this.velocity.y <= canvas.height)
+				this.velocity.y += game.gravity;
+
+			if(this.collides("Platform", {x: 0, y: this.velocity.y}) === false){
+				this.onGround = false;
+				this.position.y += this.velocity.y;
+
+			}else{
+				this.onGround = true;
+				this.velocity.y = 0;
+			}
+
+			if(this.collides("Platform", {x: this.velocity.x, y: 0}) === false){
+				this.position.x += this.velocity.x;
+			}else{
+				this.velocity.x = 0;
+			}
+		}
+	}
+
+
+    draw(){
+		let x = this.position.x - (game.cam.x - game.cam.w/2);
+		let y = this.position.y;
+
+		if (this.image !== null){
+			c.drawImage(
+				this.image, 
+				x, 
+				y, 
+				this.width, 
+				this.height
+			);
+
+		}else{
+			c.fillStyle = 'red';
+			c.fillRect(
+				x, 
+				y, 
+				this.width, 
+				this.height
+			);
+		}
+	}
+
+	
+	destroy(){
+		
+		for(let i = 0; i < game.objects.length; i ++){
+			let obj = game.objects[i];
+			
+			if(obj === this)
+				game.objects.splice(i, 1);	
+		}
+	}
+
+
+	collides(objName, transition){
+
+		if(transition === undefined)
+			transition = {x: 0, y: 0};
+
+		for(let i = 0; i < game.objects.length; i += 1){
+			let obj = game.objects[i];
+			
+			if (obj.constructor.name === objName && obj !== this){
+				let pos1 = {
+					x: this.position.x + transition.x,
+					y: this.position.y + transition.y,
+					w: this.width,
+					h: this.height
+				};
+				let pos2 = {
+					x: obj.position.x + obj.velocity.x,
+					y: obj.position.y + obj.velocity.y,
+					w: obj.width,
+					h: obj.height
+				};
+
+				if(collisionCheck(pos1, pos2) === true)
+					return true;		
+			}
+		}
+		return false;
+	}
 } 
 
-function createImage(imgSrc, w, h) {
-    const image = new Image(w, h)
-    image.src = imgSrc
-    return image
-}
-//SFX
-var coinsfx = new Audio('sfx/coinsfx.mp3')
-// Game objects
-let player = new Player()
-//const platform = new Platform()
-let platformImg = createImage('images/dirt.png', 500, 100)
-let coinImg = createImage('images/coin.png', 100,100)
-let platforms = []
-// Point variables
-let points = 0
-c.font = "48px serif"
-let point
 
-const keys = {
-    right: {
-        pressed: false
-    },
-    left: {
-        pressed: false
+class Player extends GenericObject {
+
+
+    constructor(x, y) {
+		super(x, y, null, 30, 30);
+		this.static = false;
+    }
+
+
+    update() {
+		super.update();
+
+		if (game.keys.right.pressed) {
+			this.velocity.x = 5;
+
+		}else if (game.keys.left.pressed) {
+			this.velocity.x = -5;
+		
+		}else{
+			this.velocity.x = 0;
+		}
+
+		if(game.keys.up.pressed && this.onGround === true)
+			this.velocity.y = -15;
+
+		// lose condition
+		if (this.position.y > canvas.height) {
+			init();
+		}
     }
 }
-// background objects
-let genericObjects = [new GenericObject({x: 0, y: 0, image: createImage('images/background.jpg')})]
 
-let scrollOffset = 0
+
+class Platform extends GenericObject {
+
+
+    constructor(x, y, image) {
+        super(x, y, image);
+    }
+}
+
+
+class Coin extends GenericObject {
+
+
+    constructor(x, y) {
+        super(x, y, game.img.coin);
+		this.solid = false;
+    }
+
+	update(){
+
+
+		if(this.collides("Player")){
+			game.sfx.coin.currentTime = 0;	
+			game.sfx.coin.play();
+			game.points += 1;
+			this.destroy();
+		}
+	}
+}
+
+
+class Camera{
+
+	constructor(){ 
+		this.cam = game.cam;
+		this.velocity = {x: 0, y: 0};
+	}
+	
+	draw(){}
+	
+	update(){
+		let player = getObject('Player');	
+
+		if(player === null)
+			return;
+
+		this.velocity.x = (player.position.x - this.cam.x)/50;
+		this.cam.x += this.velocity.x;
+	}
+}
+
 // reinitializes the player and map in case of DEATH
 function init() {
+	
+	game.objects = [];
+    game.points = 0;
 
-    // Game objects
-    player = new Player()
-    //const platform = new Platform()
-    platformImg = createImage('images/dirt.png', 500, 100)
-    blockplat = createImage('images/dirtblock.png', 100, 100)
-    coinImg = createImage('images/coin.png', 100,100)
+	// Camera
+	game.objects.push(new Camera());
+
+    // Players
+    game.objects.push(new Player(100, 100))
     
-    platforms = [
-        new Platform({x: 500, y: 600, image: platformImg}), 
-        new Platform({x: 0, y: 600, image: platformImg}),
-        new Platform({x: 500 * 2 + 200, y: 600, image: platformImg}),
-        new Platform({x: 1700 + 200, y: 500, image: blockplat}),
-        new Platform({x: 2200, y: 400, image: blockplat}),
-        new Platform({x: 2500, y: 500, image: blockplat}),
-        new Platform({x: 2800, y: 600, image: platformImg}),
-    ]
-    points = 0
-    // background objects
-    genericObjects = [new GenericObject({x: 0, y: 0, image: createImage('images/background.jpg')})]
-    coins = [new Coin({x: 500, y: 400, image: coinImg}), new Coin({x: 700, y: 400, image: coinImg})]
-    scrollOffset = 0
+	// Platforms
+	game.objects.push(
+        new Platform(500, 600, game.img.platform), 
+        new Platform(0, 600, game.img.platform),
+        new Platform(500 * 2 + 200, 600, game.img.platform),
+        new Platform(1700 + 200, 500, game.img.dirt),
+        new Platform(2200, 400, game.img.dirt),
+        new Platform(2500, 500, game.img.dirt),
+        new Platform(2800, 600, game.img.dirt)
+	);
 
+	// Coins
+	game.objects.push(
+		new Coin(500, 400), 
+		new Coin(700, 400)
+	);
 }
+
+
 function animate() {
-    requestAnimationFrame(animate)
-    // This clears the canvas
-    c.clearRect(0, 0, canvas.width, canvas.height)
-    // This draws the back on to the canvas
-    // Since this is a loop, the update function will keep getting
-    // Thus the position and volocity are updated to mimic gravity
+    requestAnimationFrame(animate);
+    c.clearRect(0, 0, canvas.width, canvas.height);
 
-    genericObjects.forEach(objectimg => {
-        objectimg.draw()
-    })
-    platforms.forEach(platform => {
-        platform.draw()
-    })
-    coins.forEach(coin => {
-        console.log(coin)
-        coin.draw()
-    })
-    point = c.fillText(points, 950, 50)
-    
-    player.update()
-    if (keys.right.pressed &&
-        player.position.x < 600) {
-        player.velocity.x = 5
-    } else if (keys.left.pressed && player.position.x > 70) {
-        player.velocity.x = -5
-    }
-    else {
-        player.velocity.x = 0
+	game.objects.forEach((obj) => {
+		obj.draw();
+		obj.update();		
+	});
 
-        if (keys.right.pressed) {
-            coins.forEach(coin => {
-                coin.position.x -= 5
-            })
-            platforms.forEach(platform => {
-                scrollOffset += 5
-                platform.position.x -= 5
-            })
-            
-        } else if (keys.left.pressed) {
-            coins.forEach(coin => {
-                coin.position.x += 5
-            })
-            platforms.forEach(platform => {
-                scrollOffset -= 5
-                platform.position.x += 5
-            })
-            
-        }
-    }
+    point = drawText(game.points, 950, 50);
 
-    console.log(scrollOffset)
-    platforms.forEach(platform => {
-        if (player.position.y + player.height <= platform.position.y && 
-            player.position.y + player.height + player.velocity.y >= platform.position.y &&
-            player.position.x + player.width >= platform.position.x &&
-            player.position.x <= platform.position.x + platform.width) {
-            player.velocity.y = 0
-        }
-    })
-
-    coins.forEach(coin => {
-        if (player.position.x + player.width >= coin.position.x
-            && player.position.x <= coin.position.x + coin.width
-            && player.position.y + player.height >= coin.position.y
-            && player.position.y <= coin.position.y + coin.height) {
-            points += 1
-            console.log(points)
-            point = c.fillText(points, 950, 50)
-            coinsfx.play()
-            coin.position.y = 1000
-        }
-    })
-        
     // win condition
-    if (scrollOffset > 2000) {
+    if (game.cam.x > 1500) {
         const scoreform = document.getElementById("scoresform")
 	    	scoreform.submit()
     }
-    // lose condition
-    if (player.position.y > canvas.height) {
-        init()
-    }
 }
 
 
-init()
-animate()
+// Initialize Game
+init();
+animate();
 
-// event listeners
-// movement
-addEventListener('keydown', ({keyCode}) => {
-    switch (keyCode) {
-        case 65:
-            console.log('left')
-            keys.left.pressed = true
-            break
-        case 83:
-            console.log('down')
-            break
-        case 68:
-            console.log('right')
-            keys.right.pressed = true
-            break
-        case 87:
-            if (player.velocity.y <= 0 && player.velocity.y >= 0) {
-               console.log('up')
-               player.velocity.y -= 15 
-            }
-            break
-    }
-    console.log(keys.right.pressed)
+
+// Event Listeners
+addEventListener('keydown', (event) => {
+
+	Object.entries(game.keys).forEach(([key, value]) => {
+
+		if(value.id == event.keyCode)
+			value.pressed = true;
+	});
 })
 
-addEventListener('keyup', ({keyCode}) => {
-    switch (keyCode) {
-        case 65:
-            console.log('left')
-            keys.left.pressed = false
-            break
-        case 83:
-            console.log('down')
-            break
-        case 68:
-            console.log('right')
-            keys.right.pressed = false
-            break
-        case 87:
-            console.log('up')
-            break
-    }
-    console.log(keys.right.pressed)
+
+addEventListener('keyup', (event) => {
+
+	Object.entries(game.keys).forEach(([key, value]) => {
+
+		if(value.id == event.keyCode)
+			value.pressed = false;
+	});
 })
