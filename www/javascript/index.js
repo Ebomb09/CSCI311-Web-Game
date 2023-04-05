@@ -73,7 +73,7 @@ const game = {
 	},
 	
 	img: {
-		coin: 		createImage('images/coin.png', 100,100),
+		coin: 		createImage('images/coin.png', 100, 100),
 		block:	 	createImage('images/dirtblock.png', 100, 100),
 		platform:	createImage('images/dirt.png', 500, 100),
 		background: createImage('images/background.jpg')
@@ -139,7 +139,7 @@ class GenericObject {
 
 
     draw(){
-		let x = this.position.x - (game.cam.x - game.cam.w/2);
+		let x = this.position.x - game.cam.x;
 		let y = this.position.y;
 
 		if (this.image !== null){
@@ -241,8 +241,8 @@ class Player extends GenericObject {
 class Platform extends GenericObject {
 
 
-    constructor(x, y, image) {
-        super(x, y, image);
+    constructor(x, y, image, w, h) {
+        super(x, y, image, w, h);
     }
 }
 
@@ -283,8 +283,14 @@ class Camera{
 		if(player === null)
 			return;
 
-		this.velocity.x = (player.position.x - this.cam.x)/50;
+		let targetX = player.position.x + player.velocity.x * 20 - this.cam.w/2;
+
+		this.velocity.x = (targetX - this.cam.x)/50;
 		this.cam.x += this.velocity.x;
+
+		// Clamp Camera to bounds
+		if(this.cam.x < 0)
+			this.cam.x = 0;
 	}
 }
 
@@ -297,25 +303,46 @@ function init() {
 	// Camera
 	game.objects.push(new Camera());
 
-    // Players
-    game.objects.push(new Player(100, 100))
-    
-	// Platforms
-	game.objects.push(
-        new Platform(500, 600, game.img.platform), 
-        new Platform(0, 600, game.img.platform),
-        new Platform(500 * 2 + 200, 600, game.img.platform),
-        new Platform(1700 + 200, 500, game.img.dirt),
-        new Platform(2200, 400, game.img.dirt),
-        new Platform(2500, 500, game.img.dirt),
-        new Platform(2800, 600, game.img.dirt)
-	);
+	// Load the level from image
+	level = new Image();
+	level.src = 'images/levels/level.png';
 
-	// Coins
-	game.objects.push(
-		new Coin(500, 400), 
-		new Coin(700, 400)
-	);
+	level.addEventListener('load', () => {
+
+		// Create temporary canvas' for the level loader
+		let temp_canvas = document.createElement('canvas');
+		let temp_ctx = temp_canvas.getContext('2d');
+
+		temp_ctx.width = level.width;
+		temp_ctx.height = level.height;
+		temp_ctx.drawImage(level, 0, 0);
+
+		for(let x = 0; x < level.width; x ++){
+			for(let y = 0; y < level.height; y ++){
+
+				let pixel = temp_ctx.getImageData(x, y, 1, 1);
+
+				// Alpha is fully visible
+				if(pixel.data[3] == 255){
+
+					// Player 
+					if(pixel.data[0] == 255 && pixel.data[1] == 0 && pixel.data[2] == 0)
+						game.objects.push(new Player(x * 100, y * 100));
+
+					// Platform Block
+					if(pixel.data[0] == 0 && pixel.data[1] == 0 && pixel.data[2] == 0)
+						game.objects.push(new Platform(x * 100, y * 100, game.img.platform, 100, 100));
+
+					// Coins
+					if(pixel.data[0] == 255 && pixel.data[1] == 255 && pixel.data[2] == 0)
+						game.objects.push(new Coin(x * 100, y * 100));
+				}
+			}
+		}
+
+		// Cleanup temporary canvas
+		temp_canvas.remove();
+	});
 }
 
 
@@ -330,9 +357,11 @@ function animate() {
 
     point = drawText(game.points, 950, 50);
 
+	let player = getObject('Player');
+
     // win condition
-    if (game.cam.x > 1500)
-		uploadScore(game.points);
+    //if (player !== null && player.position.x > 1500)
+	//	uploadScore(game.points);
 }
 
 
