@@ -3,7 +3,7 @@ const canvas = document.querySelector('canvas');
 
 // This returns a drawing context, in this case to draw in 2d 
 const c = canvas.getContext('2d');
-
+c.globalCompositeOperation = 'lighter';
 
 // Helper Functions
 function createImage(imgSrc, w, h) {
@@ -25,6 +25,14 @@ function collisionCheck(obj1, obj2){
 function drawText(text, x, y){
 	c.font = game.font;
 	c.fillText(text, x, y)
+}
+
+
+function playAudio(audio, volume, loop){
+	audio.currentTime = 0;
+	audio.volume = volume;
+	audio.loop = loop;
+	audio.play();
 }
 
 
@@ -69,7 +77,9 @@ const game = {
 	},
 
 	sfx: {
-		coin: new Audio('sfx/coinsfx.mp3')
+		coin: new Audio('sfx/coinsfx.mp3'),
+		death: new Audio('sfx/death.mp3'),
+		music: new Audio('sfx/backgroundmusic.mp3')
 	},
 	
 	img: {
@@ -228,6 +238,7 @@ class Player extends GenericObject {
 
 		// lose condition
 		if (this.position.y > canvas.height) {
+			playAudio(game.sfx.death, 1.0, false);
 			init();
 		}
     }
@@ -255,11 +266,8 @@ class Coin extends GenericObject {
 	update(){
 
 		if(this.collides("Player")){
-			game.sfx.coin.currentTime = 0;	
-			game.sfx.coin.play();
-
+			playAudio(game.sfx.coin, 1.0, false);
 			game.points += 100;
-
 			this.destroy();
 		}
 	}
@@ -309,8 +317,6 @@ class Camera{
 		// Clamp Camera to bounds
 		if(this.cam.x < 0)
 			this.cam.x = 0;
-
-		this.cam.x = Math.round(this.cam.x);
 	}
 }
 
@@ -399,6 +405,7 @@ function animate() {
 // Initialize Game
 init();
 animate();
+playAudio(game.sfx.music, 0.2, true);
 
 
 // Event Listeners
