@@ -212,7 +212,7 @@
 	}
 
 	function db_handleAccount($db){
-
+		
 		if(!$db)	
 			return false;
 
@@ -274,7 +274,7 @@
 			case 'logout':
 				db_deleteSession($db, $session);
 				setsession('session', '');
-				$session = 0;
+				$session = '';
 				break;
 		}
 
