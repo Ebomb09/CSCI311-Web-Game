@@ -285,9 +285,11 @@
 		$stmt->bindParam(1, $session, PDO::PARAM_STR, 16);
 		$stmt->execute();
 
-		if($stmt->rowCount() == 1)
-			$user_id = $stmt->fetch()['user_id'];
-		
+		$results = $stmt->fetchAll();
+
+		if($stmt->rowCount() == 1 && $results[0]['id'] == $session)
+			$user_id = $results[0]['user_id'];
+
 		return $user_id;
 	}
 ?>
