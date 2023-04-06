@@ -394,6 +394,89 @@ class Camera extends GenericObject{
 }
 
 
+class Client extends GenericObject {
+
+	constructor() {
+		super(0, 0, null, 0, 0);
+		this.solid = false;
+		this.lock = false;
+		this.players = []
+	}
+
+	
+	draw() {
+		this.players.forEach((obj) => {
+			obj.draw();
+			drawText(obj.name, obj.position.x - game.cam.x, obj.position.y - game.cam.y);
+		});
+	}
+
+	
+	update() {
+	
+		// Psuedo physics
+		this.players.forEach((obj) => obj.update());
+
+		// Send our player position and wait for the server to respond
+		// with other logged in players
+		if(!this.lock){
+			this.lock = true;
+
+			let data = new FormData;
+
+			game.objects.forEach((obj) => {
+				
+				if(obj.constructor.name === 'Player'){
+					data.set('x', obj.position.x);
+					data.set('y', obj.position.y);
+					data.set('Vx', obj.velocity.x);
+					data.set('Vy', obj.velocity.y);
+				}
+			});
+
+			fetch('include/multiplayer.php', {
+				method: 'POST',
+				body: data
+			})
+			.then((response) => response.json())
+			.then((obj) => {		
+
+				// Add all players except ourself
+				Object.entries(obj.players).forEach(([key, value]) => {
+					
+					if(key != obj.user_id){	
+						let name = value['name'];				
+						let x = parseInt(value['x']);
+						let y = parseInt(value['y']);
+						let Vx = parseInt(value['Vx']);
+						let Vy = parseInt(value['Vy']);
+
+						let player = this.players.find((element) => element.key == key);
+
+						// Create new player to track
+						if(player === undefined){
+							player = new GenericObject(0, 0, null, 30, 30);	
+							player.static = false;
+							player.key = key;
+							player.name = name;
+
+							this.players.push(player);
+						}
+
+						player.position = {x: x, y: y};
+						player.velocity = {x: Vx, y: Vy};
+					}
+
+				});
+			})
+			.finally(() => {
+				this.lock = false;
+			});
+		}
+	}
+}
+
+
 // Reinitializes the player and map in case of DEATH
 function init() {
 	
@@ -402,6 +485,9 @@ function init() {
 
 	// Camera
 	game.objects.push(new Camera());
+
+	// Client
+	game.objects.push(new Client());
 
 	// Load the level from image
 	level = new Image();
@@ -487,6 +573,8 @@ function animate() {
 
     drawText(game.points, 800, 50);
 
+
+
 	// Calculate frame delay
 	endTime = Date.now();
 	
@@ -505,6 +593,9 @@ init();
 animate();
 playAudio(game.sfx.music, 0.1, true);
 
+// Try to get post test
+data = new FormData();
+data.append('player', 0);
 
 // Event Listeners
 addEventListener('keydown', (event) => {
