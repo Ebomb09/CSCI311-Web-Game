@@ -134,6 +134,9 @@ class GenericObject {
 		}
     }
 	
+	
+	afterInit(){ /* After game obejcts initialize do whatever */ }
+
 
 	update(){
 
@@ -272,8 +275,7 @@ class Platform extends GenericObject {
     }
 
 
-	update() {
-	
+	afterInit() {
 		let up = this.collides('Platform', {x: 0, y: -this.height});
 		let down = this.position.y + this.height >= game.world.h || this.collides('Platform', {x: 0, y: this.height});
 		let left = this.position.x <= 0 || this.collides('Platform', {x: -this.width, y: 0});
@@ -450,6 +452,7 @@ function init() {
 
 		// Find world limits
 		game.objects.forEach((obj) => {
+			obj.afterInit();
 
 			if(obj.position.x + obj.width > game.world.w)
 				game.world.w = obj.position.x + obj.width;
