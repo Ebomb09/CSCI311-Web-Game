@@ -7,18 +7,21 @@ c.globalCompositeOperation = 'lighter';
 
 // Helper Functions
 function createImage(imgSrc, w, h) {
-    const image = new Image(w, h);
+    const image = new Image();
     image.src = imgSrc;
+	image.frameWidth = w;
+	image.frameHeight = h;
+
     return image;
 }
 
 
 function collisionCheck(obj1, obj2){
 
-	return (obj1.x + obj1.w >= obj2.x
-		&& 	obj1.x 			<= obj2.x + obj2.w
-		&& 	obj1.y + obj1.w >= obj2.y
-		&& 	obj1.y 			<= obj2.y + obj2.h);
+	return (obj1.x + obj1.w > obj2.x
+		&& 	obj1.x 			< obj2.x + obj2.w
+		&& 	obj1.y + obj1.h > obj2.y
+		&& 	obj1.y 			< obj2.y + obj2.h);
 }
 
 
@@ -92,7 +95,7 @@ const game = {
 	img: {
 		coin: 		createImage('images/coin.png', 100, 100),
 		block:	 	createImage('images/dirtblock.png', 100, 100),
-		platform:	createImage('images/dirt.png', 500, 100),
+		platform:	createImage('images/dirt.png', 100, 100),
 		background: createImage('images/background.jpg'),
 		flag:		createImage('images/flag.png', 100, 100)
 	},
@@ -107,6 +110,7 @@ class GenericObject {
     constructor(x, y, image, w, h) {
         this.position = {x: x, y: y};
 		this.velocity = {x: 0, y: 0};
+		this.frame = {x: 0, y: 0};
 		this.static = true;
 		this.solid = true;
 		this.alive = true;
@@ -134,23 +138,27 @@ class GenericObject {
 	update(){
 
 		// Do physics if not static
-		if(this.static === false){
+		if(!this.static){
 			this.velocity.y += game.gravity;
 
-			if(this.collides("Platform", {x: 0, y: this.velocity.y}) === false){
+			if(!this.collides("Platform", {x: 0, y: this.velocity.y})){
 				this.onGround = false;
 				this.position.y += this.velocity.y;
 
 			}else{
-				this.onGround = true;
+
+				// Check if velocity acting towards ground
+				if(this.velocity.y > 0)
+					this.onGround = true;
+
 				this.velocity.y = 0;
 			}
 
-			if(this.collides("Platform", {x: this.velocity.x, y: 0}) === false){
+			if(!this.collides("Platform", {x: this.velocity.x, y: 0}))
 				this.position.x += this.velocity.x;
-			}else{
+
+			else
 				this.velocity.x = 0;
-			}
 		}
 	}
 
@@ -162,6 +170,12 @@ class GenericObject {
 		if (this.image !== null){
 			c.drawImage(
 				this.image, 
+				/* Frame Animation */
+				this.frame.x * this.image.frameWidth,
+				this.frame.y * this.image.frameHeight,
+				this.image.frameWidth,
+				this.image.frameHeight,
+				/* Destination */
 				x, 
 				y, 
 				this.width, 
@@ -192,7 +206,7 @@ class GenericObject {
 
 		for(let i = 0; i < game.objects.length; i += 1){
 			let obj = game.objects[i];
-			
+
 			if (obj.constructor.name === objName && obj !== this){
 				let pos1 = {
 					x: this.position.x + transition.x,
@@ -207,7 +221,7 @@ class GenericObject {
 					h: obj.height
 				};
 
-				if(collisionCheck(pos1, pos2) === true)
+				if(collisionCheck(pos1, pos2))
 					return true;		
 			}
 		}
@@ -238,7 +252,7 @@ class Player extends GenericObject {
 			this.velocity.x = 0;
 		}
 
-		if(game.keys.up.pressed && this.onGround === true)
+		if(game.keys.up.pressed && this.onGround)
 			this.velocity.y = -15;
 
 		// Lose condition
@@ -256,6 +270,45 @@ class Platform extends GenericObject {
     constructor(x, y, image, w, h) {
         super(x, y, image, w, h);
     }
+
+
+	update() {
+	
+		let up = this.collides('Platform', {x: 0, y: -this.height});
+		let down = this.position.y + this.height >= game.world.h || this.collides('Platform', {x: 0, y: this.height});
+		let left = this.position.x <= 0 || this.collides('Platform', {x: -this.width, y: 0});
+		let right = this.position.x + this.width >= game.world.w || this.collides('Platform', {x: this.width, y: 0});
+
+		if(up && down && left && right)
+			this.frame = {x: 1, y: 1};
+
+		else if(!left && !up && right && down)
+			this.frame = {x: 0, y: 0};
+
+		else if(left && !up && right && down)
+			this.frame = {x: 1, y: 0};
+
+		else if(left && !up && !right && down)
+			this.frame = {x: 2, y: 0};
+
+		else if(!left && up && right && down)
+			this.frame = {x: 0, y: 1};
+
+		else if(left && up && !right && down)
+			this.frame = {x: 2, y: 1};
+
+		else if(!left && up && right && !down)
+			this.frame = {x: 0, y: 2};
+
+		else if(left && up && right && !down)
+			this.frame = {x: 1, y: 2};
+
+		else if(left && up && !right && !down)
+			this.frame = {x: 2, y: 2};
+
+		else
+			this.frame = {x: 1, y: 0};
+	}
 }
 
 
@@ -302,9 +355,7 @@ class Camera extends GenericObject{
 	constructor(){ 
 		super(0, 0, null, 0, 0);
 		this.solid = false;
-
 		this.cam = game.cam;
-		this.velocity = {x: 0, y: 0};
 	}
 	
 
@@ -425,7 +476,7 @@ function animate() {
 	for(let i = 0; i < game.objects.length; i += 1){
 		let obj = game.objects[i];
 
-		if(obj.alive === false){
+		if(!obj.alive){
 			game.objects.splice(i, 1);
 			i -= 1;
 		}
