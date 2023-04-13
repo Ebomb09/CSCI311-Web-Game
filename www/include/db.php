@@ -102,10 +102,11 @@
 		$results = db_getUsersByName($db, $name);
 
 		// Check if the username is not already taken
-		if($results && $results->rowCount() == 0){			
-			$stmt = $db->prepare('INSERT INTO users(name, password, icon) VALUES (?, ?, ?);');
+		if($results && $results->rowCount() == 0){	
+			$password_hash = password_hash($pass, PASSWORD_DEFAULT);
+			$stmt = $db->prepare('INSERT INTO users(name, password_hash, icon) VALUES (?, ?, ?);');
 			$stmt->bindParam(1, $name, PDO::PARAM_STR, 16);
-			$stmt->bindParam(2, $pass, PDO::PARAM_STR, 32);
+			$stmt->bindParam(2, $password_hash, PDO::PARAM_STR, 60);
 			$stmt->bindParam(3, $icon, PDO::PARAM_STR, 512);
 
 			if($stmt->execute())
@@ -236,7 +237,7 @@
 
 				$row = $results->fetch();
 
-				if($row['password'] == $event_pass){
+				if(password_verify($event_pass, $row['password_hash'])) {
 					$session = db_createSession($db, $row['id']);
 					setsession('session', $session);
 			
@@ -259,7 +260,7 @@
 
 					$row = $results->fetch();
 
-					if($row['password'] == $event_pass){
+					if(password_verify($event_pass, $row['password_hash'])){
 						$session = db_createSession($db, $row['id']);
 						setsession('session', $session);
 				
