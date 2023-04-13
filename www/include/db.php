@@ -102,8 +102,8 @@
 		$results = db_getUsersByName($db, $name);
 
 		// Check if the username is not already taken
-		if($results && $results->rowCount() == 0){	
-			$password_hash = password_hash($pass, PASSWORD_DEFAULT);
+		if($results && $results->rowCount() == 0){		
+			$password_hash = password_hash($pass, PASSWORD_DEFAULT);	
 			$stmt = $db->prepare('INSERT INTO users(name, password_hash, icon) VALUES (?, ?, ?);');
 			$stmt->bindParam(1, $name, PDO::PARAM_STR, 16);
 			$stmt->bindParam(2, $password_hash, PDO::PARAM_STR, 60);
@@ -131,6 +131,26 @@
 				return true;
 		}
 		return false;	
+	}
+	
+	function db_updateUserPassword($db, $user_id, $password_hash){
+
+		if (!$db){
+			return false;
+		}
+
+		$results = db_getUsersById($db, $user_id);
+		
+		if ($results && $results->rowCount() == 1){
+			$stmt = $db->prepare('UPDATE users SET password_hash=? WHERE id=?');
+			$stmt->bindParam(1, $password_hash, PDO::PARAM_STR, 60);
+			$stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+			
+			if ($stmt->execute()){
+				return true;
+			}
+			
+		}
 	}
 
 	function db_getUserScores($db){
@@ -237,7 +257,7 @@
 
 				$row = $results->fetch();
 
-				if(password_verify($event_pass, $row['password_hash'])) {
+				if (password_verify($event_pass, $row['password_hash'])) {
 					$session = db_createSession($db, $row['id']);
 					setsession('session', $session);
 			
@@ -260,7 +280,7 @@
 
 					$row = $results->fetch();
 
-					if(password_verify($event_pass, $row['password_hash'])){
+					if(password_verify($event_pass, $row['password_hash'])) {
 						$session = db_createSession($db, $row['id']);
 						setsession('session', $session);
 				
